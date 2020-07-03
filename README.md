@@ -1,2 +1,2 @@
 # spring-loading-caffeine
-Loading caches using Spring annotations
+Show a way to use Caffeine loading caches in a reususable Spring like fashion.
