@@ -1,7 +1,7 @@
 package se.plilja;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import se.plilja.loadingcache.LoadingCacheable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 class HelloService {
     private AtomicInteger invocationCounter = new AtomicInteger(0);
 
-    @LoadingCacheable("hello")
-    String hello() {
+    @Cacheable(value = "hello", keyGenerator = "keyGenerator")
+    public String hello() {
         int invocation = invocationCounter.incrementAndGet();
         try {
             Thread.sleep(5000);
