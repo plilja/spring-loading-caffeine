@@ -3,15 +3,13 @@ package se.plilja.loadingcache;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-@Component
-public class LoadingCacheLoader implements CacheLoader<Object, Object> {
+class LoadingCacheLoader implements CacheLoader<Object, Object> {
     private final Map<Method, Function<CacheKey, Object>> loaders = new ConcurrentHashMap<>();
 
     @Nullable
@@ -27,7 +25,7 @@ public class LoadingCacheLoader implements CacheLoader<Object, Object> {
         return loader.apply(cacheKey);
     }
 
-    public void addLoader(Method method, Function<CacheKey, Object> loader) {
+    void addLoader(Method method, Function<CacheKey, Object> loader) {
         loaders.put(method, loader);
     }
 }

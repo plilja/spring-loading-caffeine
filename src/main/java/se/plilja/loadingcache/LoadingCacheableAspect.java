@@ -13,15 +13,15 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Aspect
-@Component
 class LoadingCacheableAspect {
-    private final LoadingCacheLoader loadingCacheLoader;
+    private final ConfigurableCaffeineCacheManager configurableCaffeineCacheManager;
     private final Map<String, Boolean> handledCaches = new ConcurrentHashMap<>();
 
-    LoadingCacheableAspect(LoadingCacheLoader loadingCacheLoader) {
-        this.loadingCacheLoader = loadingCacheLoader;
+    LoadingCacheableAspect(ConfigurableCaffeineCacheManager configurableCaffeineCacheManager) {
+        this.configurableCaffeineCacheManager = configurableCaffeineCacheManager;
     }
 
     @Around("@annotation(org.springframework.cache.annotation.Cacheable)")
@@ -32,7 +32,7 @@ class LoadingCacheableAspect {
         String[] names = loadingCacheableAnnotation.cacheNames().length > 0 ? loadingCacheableAnnotation.cacheNames() : loadingCacheableAnnotation.value();
         for (String cacheName : names) {
             handledCaches.computeIfAbsent(cacheName, (name) -> {
-                loadingCacheLoader.addLoader(method, key -> {
+                configurableCaffeineCacheManager.setLoadingCacheLoader(method, key -> {
                     return ReflectionMethodInvoker.invoke(key.getTarget(), key.getMethod(), key.getArgs());
                 });
                 return true;

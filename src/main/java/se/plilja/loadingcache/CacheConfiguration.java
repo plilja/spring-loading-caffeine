@@ -1,7 +1,6 @@
 package se.plilja.loadingcache;
 
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +12,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 class CacheConfiguration {
 
     @Bean
-    CaffeineCacheManager cacheManager(LoadingCacheLoader loadingCacheLoader) {
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCacheLoader(loadingCacheLoader);
-        return caffeineCacheManager;
+    ConfigurableCaffeineCacheManager cacheManager() {
+        return new ConfigurableCaffeineCacheManager();
     }
 
     @Bean("keyGenerator")

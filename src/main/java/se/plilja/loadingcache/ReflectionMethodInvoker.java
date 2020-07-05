@@ -2,6 +2,10 @@ package se.plilja.loadingcache;
 
 import java.lang.reflect.Method;
 
+/**
+ * Util class to invoke methods via reflection without the hazzle
+ * of checked exceptions.
+ */
 final class ReflectionMethodInvoker {
     private ReflectionMethodInvoker() {
         // Should not be instantiated
