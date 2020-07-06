@@ -46,4 +46,9 @@ public class LoadingCacheConfiguration {
         return (target, method, args) -> new CacheKey(args, target, method);
     }
 
+    @Bean
+    LoadingCacheableAspect loadingCacheableAspect(ConfigurableCaffeineCacheManager cacheManager) {
+        return new LoadingCacheableAspect(cacheManager);
+    }
+
 }

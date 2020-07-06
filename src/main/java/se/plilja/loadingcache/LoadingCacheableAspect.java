@@ -7,14 +7,12 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Aspect
 class LoadingCacheableAspect {
