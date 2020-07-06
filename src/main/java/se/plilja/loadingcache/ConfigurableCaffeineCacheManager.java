@@ -2,6 +2,8 @@ package se.plilja.loadingcache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.CaffeineSpec;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -10,31 +12,26 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 class ConfigurableCaffeineCacheManager implements CacheManager {
-    private final Map<String, Caffeine<Object, Object>> customizedCacheNames = new ConcurrentHashMap<>();
+    private final Optional<CaffeineSpec> defaultCaffeineSpecOptional;
+    private final MeterRegistry meterRegistry;
+    private final Map<String, CaffeineSpec> customizedCacheNames = new ConcurrentHashMap<>();
     private final LoadingCacheLoader loadingCacheLoader = new LoadingCacheLoader();
-    private final Caffeine<Object, Object> defaultCaffeine;
     private final Map<String, Cache> caches = new ConcurrentHashMap<>();
     private final Set<String> canLoad = ConcurrentHashMap.newKeySet();
 
-    ConfigurableCaffeineCacheManager(CaffeineSpec defaultSpec) {
-        if (defaultSpec == null) {
-            this.defaultCaffeine = Caffeine.newBuilder();
-        } else {
-            this.defaultCaffeine = Caffeine.from(defaultSpec);
-        }
-    }
-
-    public void setCacheConfiguration(String name, Caffeine<Object, Object> caffeine) {
-        customizedCacheNames.put(name, caffeine);
+    ConfigurableCaffeineCacheManager(CaffeineSpec defaultSpec, MeterRegistry meterRegistry) {
+        this.defaultCaffeineSpecOptional = Optional.ofNullable(defaultSpec);
+        this.meterRegistry = meterRegistry;
     }
 
     public void setCacheConfiguration(String name, CaffeineSpec caffeineSpec) {
-        setCacheConfiguration(name, Caffeine.from(caffeineSpec));
+        customizedCacheNames.put(name, caffeineSpec);
     }
 
     void setLoadingCacheLoader(List<String> caches, Method method, Function<CacheKey, Object> loader) {
@@ -45,25 +42,28 @@ class ConfigurableCaffeineCacheManager implements CacheManager {
     @Override
     public Cache getCache(String name) {
         return caches.computeIfAbsent(name, (_name) -> {
-            CaffeineCache createdCache;
             if (customizedCacheNames.containsKey(name)) {
-                Caffeine<Object, Object> caffeine = customizedCacheNames.get(name);
-                createdCache = createCache(name, caffeine);
+                CaffeineSpec caffeineSpec = customizedCacheNames.get(name);
+                return createCache(name, Optional.of(caffeineSpec));
             } else {
-                createdCache = createCache(name, defaultCaffeine);
+                return createCache(name, defaultCaffeineSpecOptional);
             }
-            return createdCache;
         });
     }
 
-    private CaffeineCache createCache(String name, Caffeine<Object, Object> fromCaffeine) {
-        CaffeineCache caffeineCache;
+    private CaffeineCache createCache(String name, Optional<CaffeineSpec> fromSpec) {
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeineCache;
+        Caffeine<Object, Object> caffeine = fromSpec.map(Caffeine::from).orElseGet(Caffeine::newBuilder);
         if (canLoad.contains(name)) {
-            caffeineCache = new CaffeineCache(name, fromCaffeine.build(loadingCacheLoader));
+            caffeineCache = caffeine.build(loadingCacheLoader);
         } else {
-            caffeineCache = new CaffeineCache(name, fromCaffeine.build());
+            caffeineCache = caffeine.build();
         }
-        return caffeineCache;
+        CaffeineCache springCache = new CaffeineCache(name, caffeineCache);
+        if (fromSpec.map(spec -> spec.toParsableString().contains("recordStats")).orElse(false)) {
+            CaffeineCacheMetrics.monitor(meterRegistry, caffeineCache, name, List.of());
+        }
+        return springCache;
     }
 
     @Override

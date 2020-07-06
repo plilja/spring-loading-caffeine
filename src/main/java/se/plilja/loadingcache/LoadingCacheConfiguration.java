@@ -1,6 +1,7 @@
 package se.plilja.loadingcache;
 
 import com.github.benmanes.caffeine.cache.CaffeineSpec;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
@@ -18,13 +19,13 @@ public class LoadingCacheConfiguration {
     static final String LOADING_CACHE_KEY_GENERATOR = "loadingCacheKeyGenerator";
 
     @Bean
-    ConfigurableCaffeineCacheManager cacheManager(Environment environment) {
+    ConfigurableCaffeineCacheManager cacheManager(Environment environment, MeterRegistry meterRegistry) {
         String defaultCacheConfiguration = environment.getProperty("caffeine.defaultSpec");
         CaffeineSpec defaultSpec = null;
         if (defaultCacheConfiguration != null) {
             defaultSpec = CaffeineSpec.parse(defaultCacheConfiguration);
         }
-        ConfigurableCaffeineCacheManager cacheManager = new ConfigurableCaffeineCacheManager(defaultSpec);
+        ConfigurableCaffeineCacheManager cacheManager = new ConfigurableCaffeineCacheManager(defaultSpec, meterRegistry);
         for (PropertySource<?> propertySource : ((AbstractEnvironment) environment).getPropertySources()) {
             if (propertySource instanceof EnumerablePropertySource<?>) {
                 for (String propertyName : ((EnumerablePropertySource<?>) propertySource).getPropertyNames()) {
