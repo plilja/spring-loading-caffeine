@@ -4,15 +4,16 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 class HelloService {
-    private AtomicInteger invocationCounter = new AtomicInteger(0);
+    private Map<String, Integer> invocationCounters = new ConcurrentHashMap<>();
 
     @Cacheable(value = "hello", keyGenerator = "loadingCacheKeyGenerator")
     public String hello(String name) {
-        int invocation = invocationCounter.incrementAndGet();
+        int invocation = invocationCounters.merge(name, 1, Integer::sum);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
