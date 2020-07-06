@@ -13,13 +13,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-public class ConfigurableCaffeineCacheManager implements CacheManager {
+class ConfigurableCaffeineCacheManager implements CacheManager {
     private final CaffeineCacheManager caffeineCacheManager;
     private final Map<String, Caffeine<Object, Object>> customizedCacheNames = new ConcurrentHashMap<>();
     private final Set<String> createdCustomizedCacheNames = ConcurrentHashMap.newKeySet();
     private final LoadingCacheLoader loadingCacheLoader = new LoadingCacheLoader();
 
-    public ConfigurableCaffeineCacheManager() {
+    ConfigurableCaffeineCacheManager() {
         caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCacheLoader(loadingCacheLoader);
     }
