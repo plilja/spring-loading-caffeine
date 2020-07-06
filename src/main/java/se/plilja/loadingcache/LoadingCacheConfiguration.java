@@ -9,15 +9,15 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableCaching
 @EnableAspectJAutoProxy
 @Configuration
-class CacheConfiguration {
+public class LoadingCacheConfiguration {
 
     @Bean
     ConfigurableCaffeineCacheManager cacheManager() {
         return new ConfigurableCaffeineCacheManager();
     }
 
-    @Bean("keyGenerator")
-    KeyGenerator keyGenerator() {
+    @Bean("loadingCacheKeyGenerator")
+    KeyGenerator loadingCacheKeyGenerator() {
         return (target, method, args) -> new CacheKey(args, target, method);
     }
 
