@@ -16,7 +16,7 @@ class LoadingCacheLoader implements CacheLoader<Object, Object> {
     @Override
     public Object load(@NonNull Object key) {
         if (!(key instanceof CacheKey)) {
-            throw new IllegalArgumentException("Can only load values if key is CacheKey was " + key.getClass().getSimpleName());
+            throw new IllegalArgumentException("Can only load values if key is of type CacheKey key was of type " + key.getClass().getSimpleName());
         }
         CacheKey cacheKey = (CacheKey) key;
         Function<CacheKey, Object> loader = loaders.getOrDefault(cacheKey.getMethod(), (_key) -> {
