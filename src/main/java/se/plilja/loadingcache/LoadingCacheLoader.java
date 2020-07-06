@@ -1,8 +1,6 @@
 package se.plilja.loadingcache;
 
 import com.github.benmanes.caffeine.cache.CacheLoader;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -12,9 +10,8 @@ import java.util.function.Function;
 class LoadingCacheLoader implements CacheLoader<Object, Object> {
     private final Map<Method, Function<CacheKey, Object>> loaders = new ConcurrentHashMap<>();
 
-    @Nullable
     @Override
-    public Object load(@NonNull Object key) {
+    public Object load(Object key) {
         if (!(key instanceof CacheKey)) {
             throw new IllegalArgumentException("Can only load values if key is of type CacheKey key was of type " + key.getClass().getSimpleName());
         }
